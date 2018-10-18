@@ -9,8 +9,8 @@ Requires Python 3.4+ and Django 2.0+
 
 Get the code and enter the project directory,
 ```
-git clone https://github.com/bartromgens/petanque-stats-server.git
-cd petanque-stats-server
+git clone https://github.com/openkamer/tkapi-explorer-server.git
+cd tkapi-explorer-server
 ```
 
 Install dependencies that you will need,
