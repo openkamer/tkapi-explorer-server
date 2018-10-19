@@ -1,11 +1,12 @@
 
-from django.conf.urls import url
+from django.urls import path
 from api import views
 
 
 urlpatterns = [
-    url(r'^v1/entities/$', view=views.get_entities),
-    url(r'^v1/entity/$', view=views.get_entity),
+    path('v1/entity/types/', view=views.get_entity_types),
+    path('v1/entities/<str:type>/', view=views.get_entities_by_type),
+    path('v1/entities/', view=views.get_entities_by_url),
 ]
 
 
