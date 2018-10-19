@@ -18,9 +18,17 @@ api = Api(user=TKAPI_USER, password=TKAPI_PASSWORD, verbose=True)
 
 def get_entity_types(request):
     entity_types = [
-        Activiteit, Agendapunt, Besluit, Commissie,
-        ParlementairDocument, Dossier, Stemming, Zaak,
-        FractieLid, Fractie, Persoon
+        Fractie,
+        FractieLid,
+        Dossier,
+        Persoon,
+        ParlementairDocument,
+        Zaak,
+        Commissie,
+        Stemming,
+        Activiteit,
+        Agendapunt,
+        Besluit,
     ]
     # lid_filter = FractieLid.create_filter()
     # lid_filter.filter_actief()
