@@ -53,36 +53,55 @@ def get_entity_types(request):
 
 
 def get_entities_by_type(request, type):
-    print('get_entities_by_type', type)
-    deleted_filter = VerwijderdFilter()
-    deleted_filter.filter_verwijderd()
-    params = {
-        '$filter': deleted_filter.filter_str
-    }
     url = type
-    print(url)
-    response = api.request_json(url=url, params=params)
-    if 'value' in response:
-        response = response['value']
-    entities = {
-        'name': "unknown",
-        'items': response
-    }
-    return JsonResponse(entities, safe=False)
+    return get_entities(url)
 
 
 def get_entities_by_url(request):
     url = request.GET.get('url')
-    deleted_filter = VerwijderdFilter()
-    deleted_filter.filter_verwijderd()
-    params = {
-        '$filter': deleted_filter.filter_str
-    }
-    response = api.request_json(url=url, params=params)
+    return get_entities(url)
+
+
+def get_entities_next_page(request, url):
+    print('get_entities_next_page', url)
+    response = api.request_json(url=url)
+    next_page_link = None
+    items_json = response
     if 'value' in response:
-        response = response['value']
+        items_json = response['value']
+    if 'odata.nextLink' in response:
+        next_page_link = response['odata.nextLink']
+        print('\n', "NEXT PAGE", next_page_link, '\n')
     entities = {
         'name': "unknown",
-        'items': response
+        'items': items_json,
+        'next_page_link': next_page_link
     }
     return JsonResponse(entities, safe=False)
+
+
+def get_entities(url):
+    print('get_entities', url)
+    params = None
+    if 'filter' not in url:
+        deleted_filter = VerwijderdFilter()
+        deleted_filter.filter_verwijderd()
+        params = {
+            '$filter': deleted_filter.filter_str
+        }
+    response = api.request_json(url=url, params=params)
+    next_page_link = None
+    items_json = response
+    if 'value' in response:
+        items_json = response['value']
+    if 'odata.nextLink' in response:
+        next_page_link = response['odata.nextLink']
+        print('\n', "NEXT PAGE", next_page_link, '\n')
+    entities = {
+        'name': "unknown",
+        'items': items_json,
+        'next_page_link': next_page_link
+    }
+    return JsonResponse(entities, safe=False)
+
+
