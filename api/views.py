@@ -64,7 +64,7 @@ def get_entities_by_type(request, type):
     url = type
     max_items = request.GET.get('max_items')
     skip_items = request.GET.get('skip_items')
-    return get_entities(url, max_items, skip_items)
+    return get_entities(url, max_items, skip_items, return_count=True)
 
 
 def get_entity_links(request):
@@ -110,7 +110,7 @@ def get_entities_next_page(request, url):
     return JsonResponse(entities, safe=False)
 
 
-def get_entities(url, max_items=None, skip_items=None):
+def get_entities(url, max_items=None, skip_items=None, return_count=False):
     print('get_entities', url)
     params = None
     if 'filter' not in url:
@@ -121,9 +121,15 @@ def get_entities(url, max_items=None, skip_items=None):
         }
     if skip_items is not None:
         params['$skip'] = skip_items
+    if return_count:
+        params['$inlinecount'] = 'allpages'
     response = api.request_json(url=url, params=params, max_items=max_items)
     next_page_link = None
     items_json = response
+    # print(items_json)
+    total_items = None
+    if return_count and 'odata.count' in response:
+        total_items = response['odata.count']
     if 'value' in response:
         items_json = response['value']
     if 'odata.nextLink' in response:
@@ -132,6 +138,7 @@ def get_entities(url, max_items=None, skip_items=None):
     entities = {
         'name': "unknown",
         'items': items_json,
+        'total_items': total_items,
         'next_page_link': next_page_link
     }
     return JsonResponse(entities, safe=False)
