@@ -60,13 +60,6 @@ def get_entity_types(request):
     return JsonResponse(entities, safe=False)
 
 
-def get_entities_by_type(request, type):
-    url = type
-    max_items = request.GET.get('max_items')
-    skip_items = request.GET.get('skip_items')
-    return get_entities(url, max_items, skip_items, return_count=True)
-
-
 def get_entity_links(request):
     entity_url = request.GET.get('entity_url')
     related_type = request.GET.get('related_type')
@@ -89,29 +82,20 @@ def get_entity_links(request):
 
 def get_entities_by_url(request):
     url = request.GET.get('url')
-    return get_entities(url)
-
-
-def get_entities_next_page(request, url):
-    print('get_entities_next_page', url)
-    response = api.request_json(url=url)
-    next_page_link = None
-    items_json = response
-    if 'value' in response:
-        items_json = response['value']
-    if 'odata.nextLink' in response:
-        next_page_link = response['odata.nextLink']
-        print('\n', "NEXT PAGE", next_page_link, '\n')
-    entities = {
-        'name': "unknown",
-        'items': items_json,
-        'next_page_link': next_page_link
-    }
-    return JsonResponse(entities, safe=False)
+    max_items = request.GET.get('max_items', 10)
+    skip_items = request.GET.get('skip_items', 0)
+    is_single_item = request.GET.get('is_single_item', False)
+    is_single_item = is_single_item == 'true'
+    return_count = request.GET.get('return_count', False)
+    if is_single_item:
+        max_items = None
+        skip_items = None
+        return_count = False
+    return get_entities(url, max_items, skip_items, return_count=return_count)
 
 
 def get_entities(url, max_items=None, skip_items=None, return_count=False):
-    print('get_entities', url)
+    print('get_entities', url, max_items, skip_items, return_count)
     params = None
     if 'filter' not in url:
         deleted_filter = VerwijderdFilter()
@@ -134,9 +118,7 @@ def get_entities(url, max_items=None, skip_items=None, return_count=False):
         items_json = response['value']
     if 'odata.nextLink' in response:
         next_page_link = response['odata.nextLink']
-        print('\n', "NEXT PAGE", next_page_link, '\n')
     entities = {
-        'name': "unknown",
         'items': items_json,
         'total_items': total_items,
         'next_page_link': next_page_link
