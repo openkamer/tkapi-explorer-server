@@ -1,0 +1,8 @@
+[Unit]
+Description=uWSGI instance to serve tkapi-explorer-server
+
+[Service]
+ExecStart=/bin/bash -c 'cd /home/tkapi/tkapi-explorer-server; source env/bin/activate; uwsgi --ini docs/config/tkapi_uwsgi.ini'
+
+[Install]
+WantedBy=multi-user.target
