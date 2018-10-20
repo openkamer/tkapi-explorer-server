@@ -6,7 +6,7 @@ from tkapi.actor import FractieLid, Fractie, Persoon, Lid
 from tkapi.activiteit import Activiteit
 from tkapi.agendapunt import Agendapunt
 from tkapi.besluit import Besluit
-from tkapi.commissie import Commissie, CommissieLid, VoortouwCommissie
+from tkapi.commissie import Commissie, VoortouwCommissie
 from tkapi.document import ParlementairDocument
 from tkapi.dossier import Dossier
 from tkapi.stemming import Stemming
@@ -49,12 +49,42 @@ def get_entity_types(request):
             'type': type.url,
             'items': []
         })
+    entities.append({
+        'type': 'Verslag',
+        'items': []
+    })
+    entities.append({
+        'type': 'Vergadering',
+        'items': []
+    })
     return JsonResponse(entities, safe=False)
 
 
 def get_entities_by_type(request, type):
     url = type
-    return get_entities(url)
+    max_items = request.GET.get('max_items')
+    skip_items = request.GET.get('skip_items')
+    return get_entities(url, max_items, skip_items)
+
+
+def get_entity_links(request):
+    entity_url = request.GET.get('entity_url')
+    related_type = request.GET.get('related_type')
+    url = entity_url + '/$links/' + related_type
+    deleted_filter = VerwijderdFilter()
+    deleted_filter.filter_verwijderd()
+    params = {
+        '$filter': deleted_filter.filter_str
+    }
+    response = api.request_json(url=url, params=params)
+    # print(response)
+    links = []
+    if 'value' in response:
+        links = response['value']
+    elif 'url' in response:
+        links.append(response['url'])
+    # print('LINKS', links)
+    return JsonResponse(links, safe=False)
 
 
 def get_entities_by_url(request):
@@ -80,7 +110,7 @@ def get_entities_next_page(request, url):
     return JsonResponse(entities, safe=False)
 
 
-def get_entities(url):
+def get_entities(url, max_items=None, skip_items=None):
     print('get_entities', url)
     params = None
     if 'filter' not in url:
@@ -89,7 +119,9 @@ def get_entities(url):
         params = {
             '$filter': deleted_filter.filter_str
         }
-    response = api.request_json(url=url, params=params)
+    if skip_items is not None:
+        params['$skip'] = skip_items
+    response = api.request_json(url=url, params=params, max_items=max_items)
     next_page_link = None
     items_json = response
     if 'value' in response:
