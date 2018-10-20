@@ -2,14 +2,19 @@ from django.http import JsonResponse
 from api.local_settings import TKAPI_USER, TKAPI_PASSWORD, TKAPI_ROOT_URL
 
 from tkapi import Api
-from tkapi.actor import FractieLid, Fractie, Persoon, Lid
+from tkapi.actor import FractieLid, Fractie
+from tkapi.persoon import Persoon
+from tkapi.persoon import PersoonReis
+from tkapi.persoon import PersoonGeschenk
 from tkapi.activiteit import Activiteit
 from tkapi.agendapunt import Agendapunt
 from tkapi.besluit import Besluit
-from tkapi.commissie import Commissie, VoortouwCommissie
+from tkapi.commissie import Commissie
 from tkapi.document import ParlementairDocument
 from tkapi.dossier import Dossier
 from tkapi.stemming import Stemming
+from tkapi.vergadering import Vergadering
+from tkapi.verslag import Verslag
 from tkapi.zaak import Zaak
 from tkapi import VerwijderdFilter
 
@@ -29,6 +34,10 @@ def get_entity_types(request):
         Activiteit,
         Agendapunt,
         Besluit,
+        Verslag,
+        Vergadering,
+        PersoonReis,
+        PersoonGeschenk,
     ]
     # lid_filter = FractieLid.create_filter()
     # lid_filter.filter_actief()
@@ -41,22 +50,14 @@ def get_entity_types(request):
     # fracties = [fractie.json for fractie in fracties]
 
     entities = []
-    for type in entity_types:
-        print(type.url)
+    for entity_type in entity_types:
+        print(entity_type.url)
         # items = api.get_items(type, max_items=0)
         # items_json = [item.json for item in items]
         entities.append({
-            'type': type.url,
+            'type': entity_type.url,
             'items': []
         })
-    entities.append({
-        'type': 'Verslag',
-        'items': []
-    })
-    entities.append({
-        'type': 'Vergadering',
-        'items': []
-    })
     return JsonResponse(entities, safe=False)
 
 
