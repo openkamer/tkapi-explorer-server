@@ -29,8 +29,3 @@ STATIC_ROOT = ''
 
 #STATIC_URL = '//www.domain.com/static/'
 STATIC_URL = '/static/'
-
-# TKAPI
-TKAPI_ROOT_URL = 'https://gegevensmagazijn.tweedekamer.nl/OData/v3/1.0/'
-TKAPI_USER = ''
-TKAPI_PASSWORD = ''

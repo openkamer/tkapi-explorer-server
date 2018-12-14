@@ -1,8 +1,7 @@
 from django.http import JsonResponse
-from api.local_settings import TKAPI_USER, TKAPI_PASSWORD, TKAPI_ROOT_URL
 
 from tkapi import Api
-from tkapi.actor import FractieLid, Fractie
+from tkapi.fractie import FractieLid, Fractie
 from tkapi.persoon import Persoon
 from tkapi.persoon import PersoonReis
 from tkapi.persoon import PersoonGeschenk
@@ -18,27 +17,35 @@ from tkapi.verslag import Verslag
 from tkapi.zaak import Zaak
 from tkapi import VerwijderdFilter
 
-api = Api(user=TKAPI_USER, password=TKAPI_PASSWORD, verbose=True)
+api = Api(verbose=True)
+
+entity_types = [
+    Fractie,
+    FractieLid,
+    Dossier,
+    Persoon,
+    ParlementairDocument,
+    Zaak,
+    Commissie,
+    Stemming,
+    Activiteit,
+    Agendapunt,
+    Besluit,
+    Verslag,
+    Vergadering,
+    PersoonReis,
+    PersoonGeschenk,
+]
+
+
+def get_tkitem_class_for_type(type_str):
+    for entity in entity_types:
+        if entity.url == type_str:
+            return entity
+    return None
 
 
 def get_entity_types(request):
-    entity_types = [
-        Fractie,
-        FractieLid,
-        Dossier,
-        Persoon,
-        ParlementairDocument,
-        Zaak,
-        Commissie,
-        Stemming,
-        Activiteit,
-        Agendapunt,
-        Besluit,
-        Verslag,
-        Vergadering,
-        PersoonReis,
-        PersoonGeschenk,
-    ]
     # lid_filter = FractieLid.create_filter()
     # lid_filter.filter_actief()
     # fractie_leden = api.get_fractie_leden(filter=lid_filter, max_items=5)
@@ -92,26 +99,31 @@ def get_entities_by_url(request):
         max_items = None
         skip_items = None
         return_count = False
-    return get_entities(url, max_items, skip_items, return_count=return_count)
 
+    tkitem_class = get_tkitem_class_for_type(url)
+    if tkitem_class is not None:
+        params = api.create_query_params(tkitem_class)
+    else:
+        params = {}
+        if 'filter' not in url:
+            deleted_filter = VerwijderdFilter()
+            deleted_filter.filter_verwijderd()
+            params = {
+                '$filter': deleted_filter.filter_str
+            }
 
-def get_entities(url, max_items=None, skip_items=None, return_count=False):
-    print('get_entities', url, max_items, skip_items, return_count)
-    params = None
-    if 'filter' not in url:
-        deleted_filter = VerwijderdFilter()
-        deleted_filter.filter_verwijderd()
-        params = {
-            '$filter': deleted_filter.filter_str
-        }
     if skip_items is not None:
         params['$skip'] = skip_items
     if return_count:
         params['$inlinecount'] = 'allpages'
+    return get_entities(url, params=params, max_items=max_items, skip_items=skip_items, return_count=return_count)
+
+
+def get_entities(url, params, max_items=None, skip_items=None, return_count=False):
+    print('get_entities', url, max_items, skip_items, return_count)
     response = api.request_json(url=url, params=params, max_items=max_items)
     next_page_link = None
     items_json = response
-    # print(items_json)
     total_items = None
     if return_count and 'odata.count' in response:
         total_items = response['odata.count']
@@ -125,5 +137,3 @@ def get_entities(url, max_items=None, skip_items=None, return_count=False):
         'next_page_link': next_page_link
     }
     return JsonResponse(entities, safe=False)
-
-
