@@ -1,3 +1,4 @@
 django==2.2.8
 django-cors-headers==2.2.0
--e git+https://github.com/openkamer/tkapi.git#egg=416acfc05f9b9d51304ebc62a658c93e7c9a7173
+tkapi==0.9.7
+# -e git+https://github.com/openkamer/tkapi.git#egg=416acfc05f9b9d51304ebc62a658c93e7c9a7173
